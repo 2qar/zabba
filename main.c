@@ -38,34 +38,43 @@ int main() {
 	SDL_Rect player_pos = { 40, 40, 32, 32 };
 	SDL_Event e;
 	int playing = 1;
+	float x = player_pos.x, y = player_pos.y;
+	const float move_speed = 0.2f;
+
+	Uint32 old_time = SDL_GetTicks();
 	while (playing) {
-		while (SDL_PollEvent(&e))
+		Uint32 now = SDL_GetTicks();
+		Uint32 delta = now - old_time;
+		old_time = now;
+
+		while (SDL_PollEvent(&e)) {
 			switch (e.type) {
 				case SDL_KEYDOWN:
-					switch (e.key.keysym.sym) {
-						case SDLK_ESCAPE:
-							playing = 0;
-							break;
-						default:
-							break;
+					if (e.key.keysym.sym == SDLK_ESCAPE) {
+						playing = 0;
+						break;
 					}
-					switch (e.key.keysym.scancode) {
-						case SDL_SCANCODE_W:
-							player_pos.y -= 1;
-							break;
-						case SDL_SCANCODE_A:
-							player_pos.x -= 1;
-							break;
-						case SDL_SCANCODE_S:
-							player_pos.y += 1;
-							break;
-						case SDL_SCANCODE_D:
-							player_pos.x += 1;
-						default:
-							break;
-					}
-					break;
 			}
+		}
+
+		const Uint8 *state = SDL_GetKeyboardState(NULL);
+		if (state[SDL_SCANCODE_W]) {
+			y -= move_speed * delta;
+			player_pos.y = (int)y;
+		}
+		if (state[SDL_SCANCODE_S]) {
+			y += move_speed * delta;
+			player_pos.y = (int)y;
+		}
+		if (state[SDL_SCANCODE_A]) {
+			x -= move_speed * delta;
+			player_pos.x = (int)x;
+		}
+		if (state[SDL_SCANCODE_D]) {
+			x += move_speed * delta;
+			player_pos.x = (int)x;
+		}
+
 		SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
 		SDL_RenderClear(r);
 		SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
