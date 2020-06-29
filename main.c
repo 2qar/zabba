@@ -36,7 +36,9 @@ int main() {
 		return 1;
 	}
 
-	SDL_Rect player_pos = { 40, 40, 32, 32 };
+	/* FIXME: the hitbox width needs to be < wall_size,
+	 *        otherwise moving through the doors is a pain in the ass */
+	SDL_Rect player_pos = { 100, 40, 32, 32 };
 	entity_t player = {0};
 	player.pos = &player_pos;
 	player.hitbox = player.pos;
@@ -44,7 +46,7 @@ int main() {
 	player.move_x = player.pos->x;
 	player.move_y = player.pos->y;
 
-	const int room_width = 16;
+	const int room_width = 15;
 	const int room_height = 14;
 	const int wall_size = 32;
 
@@ -71,10 +73,22 @@ int main() {
 	}
 
 	/* give each wall its size */
-	for (int i = 0; i < walls_len; ++i)
+	for (int i = 0; i < walls_len; ++i) {
 		walls[i].w = walls[i].h = wall_size;
+		walls[i].x += wall_size * 2;
+	}
 
 	SDL_Rect room_bg = { 0, 0, room_width * wall_size, room_height * wall_size };
+	room_bg.x += wall_size * 2;
+
+	/* pseudo-room junk */
+	int rooms[][3] = {
+		{ RIGHT, LEFT | DOWN , 0    },
+		{ 0    , UP   | DOWN , 0    },
+		{ 0    , UP   | RIGHT, LEFT },
+	};
+	int room_y = 1;
+	int room_x = 1;
 
 	SDL_Event e;
 	int playing = 1;
@@ -111,22 +125,52 @@ int main() {
 		SDL_SetRenderDrawColor(r, 0, 255, 0, 255);
 		SDL_RenderFillRect(r, &room_bg);
 
-		SDL_SetRenderDrawColor(r, 25, 25, 25, 255);
 		for (int i = 0; i < walls_len; ++i) {
+			SDL_SetRenderDrawColor(r, 25, 25, 25, 255);
+			/* FIXME: this is fuckin dumb */
+			if ((rooms[room_y][room_x] & UP) && i == room_width / 2)
+				continue;
+			if ((rooms[room_y][room_x] & DOWN) && i == room_width / 2 + room_width)
+				continue;
+			if ((rooms[room_y][room_x] & LEFT) && i == offset + room_height / 2)
+				continue;
+			if ((rooms[room_y][room_x] & RIGHT) && i == offset + room_height + room_height / 2)
+				continue;
+
 			SDL_RenderFillRect(r, &walls[i]);
 			if (entity_intersects_rect(&player, &walls[i]))
 				entity_uncollide(&player);
+
+			SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
+			SDL_RenderDrawRect(r, &walls[i]);
 		}
 
 		SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
 		SDL_RenderDrawRect(r, &player_pos);
-		for (int i = 0; i < walls_len; ++i)
-			SDL_RenderDrawRect(r, &walls[i]);
 
 		SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
 		SDL_RenderCopy(r, player_texture, NULL, &player_pos);
 
 		SDL_RenderPresent(r);
+
+		int temp_x = room_x;
+		int temp_y = room_y;
+		if (player_pos.x < walls[0].x)
+			room_x -= 1;
+		else if (player_pos.x > walls[room_width-1].x)
+			room_x += 1;
+		else if (player_pos.y < walls[0].y)
+			room_y -= 1;
+		else if (player_pos.y > walls[room_width].y)
+			room_y += 1;
+
+		/* TODO: put the player in the doorway they moved through */
+		if (temp_x != room_x || temp_y != room_y) {
+			player_pos.x = walls[room_width/2].x;
+			player_pos.y = walls[offset + room_width / 2].y;
+			player.move_x = player_pos.x;
+			player.move_y = player_pos.y;
+		}
 	}
 
 	free(walls);
