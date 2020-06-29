@@ -36,8 +36,6 @@ int main() {
 		return 1;
 	}
 
-	/* FIXME: the hitbox width needs to be < wall_size,
-	 *        otherwise moving through the doors is a pain in the ass */
 	SDL_Rect player_pos = { 100, 40, 32, 32 };
 	entity_t player = {0};
 	player.pos = &player_pos;
