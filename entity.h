@@ -16,6 +16,7 @@ typedef struct {
 
 
 void entity_move(entity_t *e, Uint32 delta, int dir);
+void entity_hitbox(entity_t *e, SDL_Rect *r);
 SDL_bool entity_intersects(entity_t *e, entity_t *other);
 SDL_bool entity_intersects_rect(entity_t *e, SDL_Rect *r);
 void entity_uncollide(entity_t *e);

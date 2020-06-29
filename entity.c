@@ -26,12 +26,22 @@ void entity_move(entity_t *e, Uint32 delta, int dir) {
 		move_x(e, e->move_speed, delta);
 }
 
+void entity_hitbox(entity_t *e, SDL_Rect *r) {
+	*r = *e->hitbox;
+	r->x += e->pos->x;
+	r->y += e->pos->y;
+}
+
 SDL_bool entity_intersects(entity_t *e, entity_t *other) {
-	return SDL_HasIntersection(e->hitbox, other->hitbox);
+	SDL_Rect other_hitbox;
+	entity_hitbox(other, &other_hitbox);
+	return entity_intersects_rect(e, &other_hitbox);
 }
 
 SDL_bool entity_intersects_rect(entity_t *e, SDL_Rect *r) {
-	return SDL_HasIntersection(e->hitbox, r);
+	SDL_Rect hitbox;
+	entity_hitbox(e, &hitbox);
+	return SDL_HasIntersection(&hitbox, r);
 }
 
 void entity_uncollide(entity_t *e) {

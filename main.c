@@ -41,10 +41,12 @@ int main() {
 	SDL_Rect player_pos = { 100, 40, 32, 32 };
 	entity_t player = {0};
 	player.pos = &player_pos;
-	player.hitbox = player.pos;
+	SDL_Rect player_hitbox = { 3, 18, 25, 12 };
+	player.hitbox = &player_hitbox;
 	player.move_speed = 0.2f;
 	player.move_x = player.pos->x;
 	player.move_y = player.pos->y;
+	SDL_Rect player_hitbox_worldspace;
 
 	const int room_width = 15;
 	const int room_height = 14;
@@ -145,8 +147,9 @@ int main() {
 			SDL_RenderDrawRect(r, &walls[i]);
 		}
 
+		entity_hitbox(&player, &player_hitbox_worldspace);
 		SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
-		SDL_RenderDrawRect(r, &player_pos);
+		SDL_RenderDrawRect(r, &player_hitbox_worldspace);
 
 		SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
 		SDL_RenderCopy(r, player_texture, NULL, &player_pos);
