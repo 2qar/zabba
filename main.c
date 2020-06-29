@@ -92,6 +92,7 @@ int main() {
 
 	SDL_Event e;
 	int playing = 1;
+	int show_hitboxes = 0;
 	Uint32 old_time = SDL_GetTicks();
 	while (playing) {
 		Uint32 now = SDL_GetTicks();
@@ -103,6 +104,8 @@ int main() {
 				case SDL_KEYDOWN:
 					if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q)
 						playing = 0;
+					if (e.key.keysym.sym == SDLK_TAB)
+						show_hitboxes = !show_hitboxes;
 					break;
 			}
 		}
@@ -141,13 +144,17 @@ int main() {
 			if (entity_intersects_rect(&player, &walls[i]))
 				entity_uncollide(&player);
 
-			SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
-			SDL_RenderDrawRect(r, &walls[i]);
+			if (show_hitboxes) {
+				SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
+				SDL_RenderDrawRect(r, &walls[i]);
+			}
 		}
 
-		entity_hitbox(&player, &player_hitbox_worldspace);
-		SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
-		SDL_RenderDrawRect(r, &player_hitbox_worldspace);
+		if (show_hitboxes) {
+			entity_hitbox(&player, &player_hitbox_worldspace);
+			SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
+			SDL_RenderDrawRect(r, &player_hitbox_worldspace);
+		}
 
 		SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
 		SDL_RenderCopy(r, player_texture, NULL, &player_pos);
