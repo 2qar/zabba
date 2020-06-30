@@ -26,6 +26,13 @@ void entity_move(entity_t *e, Uint32 delta, int dir) {
 		move_x(e, e->move_speed, delta);
 }
 
+void entity_set_pos(entity_t *e, int x, int y) {
+	e->pos->x = x;
+	e->pos->y = y;
+	e->move_x = x;
+	e->move_y = y;
+}
+
 void entity_hitbox(entity_t *e, SDL_Rect *r) {
 	*r = *e->hitbox;
 	r->x += e->pos->x;

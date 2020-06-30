@@ -161,23 +161,22 @@ int main() {
 
 		SDL_RenderPresent(r);
 
-		int temp_x = room_x;
-		int temp_y = room_y;
-		if (player_pos.x < walls[0].x)
+		/* flip flop rooms */
+		if (player_pos.x < walls[0].x) {
 			room_x -= 1;
-		else if (player_pos.x > walls[room_width-1].x)
+			entity_set_pos(&player, walls[room_width-1].x, player.pos->y);
+		}
+		else if (player_pos.x > walls[room_width-1].x) {
 			room_x += 1;
-		else if (player_pos.y < walls[0].y)
+			entity_set_pos(&player, walls[0].x, player.pos->y);
+		}
+		else if (player_pos.y < walls[0].y) {
 			room_y -= 1;
-		else if (player_pos.y > walls[room_width].y)
+			entity_set_pos(&player, player.pos->x, walls[walls_len-1].y);
+		}
+		else if (player_pos.y > walls[room_width].y) {
 			room_y += 1;
-
-		/* TODO: put the player in the doorway they moved through */
-		if (temp_x != room_x || temp_y != room_y) {
-			player_pos.x = walls[room_width/2].x;
-			player_pos.y = walls[offset + room_width / 2].y;
-			player.move_x = player_pos.x;
-			player.move_y = player_pos.y;
+			entity_set_pos(&player, player.pos->x, walls[offset].y);
 		}
 	}
 
