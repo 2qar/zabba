@@ -1,5 +1,8 @@
 #include <SDL2/SDL.h>
 
+#ifndef ZABBA_ENTITY_H
+#define ZABBA_ENTITY_H
+
 #define UP    1
 #define DOWN  2
 #define LEFT  4
@@ -21,3 +24,5 @@ void entity_hitbox(entity_t *e, SDL_Rect *r);
 SDL_bool entity_intersects(entity_t *e, entity_t *other);
 SDL_bool entity_intersects_rect(entity_t *e, SDL_Rect *r);
 void entity_uncollide(entity_t *e);
+
+#endif

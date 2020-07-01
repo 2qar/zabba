@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "entity.h"
+#include "player.h"
 
 int main() {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -36,16 +37,24 @@ int main() {
 		return 1;
 	}
 
+	/* player junk */
 	SDL_Rect player_pos = { 100, 40, 32, 32 };
-	entity_t player = {0};
-	player.pos = &player_pos;
 	SDL_Rect player_hitbox = { 3, 18, 25, 12 };
-	player.hitbox = &player_hitbox;
-	player.move_speed = 0.2f;
-	player.move_x = player.pos->x;
-	player.move_y = player.pos->y;
 	SDL_Rect player_hitbox_worldspace;
+	entity_t player_e = {0};
+	player_e.pos = &player_pos;
+	player_e.hitbox = &player_hitbox;
+	player_e.move_x = player_e.pos->x;
+	player_e.move_y = player_e.pos->y;
 
+	player_t player = {0};
+	player.e = &player_e;
+	player.walk_speed = 0.2f;
+	player.e->move_speed = player.walk_speed;
+	player.roll_speed = 0.4f;
+	player.roll_time_ms = 200;
+
+	/* room junk */
 	const int room_width = 15;
 	const int room_height = 14;
 	const int wall_size = 32;
@@ -102,25 +111,24 @@ int main() {
 		while (SDL_PollEvent(&e)) {
 			switch (e.type) {
 				case SDL_KEYDOWN:
-					if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_q)
-						playing = 0;
-					if (e.key.keysym.sym == SDLK_TAB)
-						show_hitboxes = !show_hitboxes;
+					/* icky indentation!!!! */
+					switch (e.key.keysym.sym) {
+						case SDLK_ESCAPE:
+						case SDLK_q:
+							playing = 0;
+							break;
+						case SDLK_TAB:
+							show_hitboxes = !show_hitboxes;
+							break;
+						case SDLK_SPACE:
+							player_roll(&player);
+							break;
+					}
 					break;
 			}
 		}
 
-		const Uint8 *state = SDL_GetKeyboardState(NULL);
-		int dir = 0;
-		if (state[SDL_SCANCODE_W])
-			dir |= UP;
-		if (state[SDL_SCANCODE_S])
-			dir |= DOWN;
-		if (state[SDL_SCANCODE_A])
-			dir |= LEFT;
-		if (state[SDL_SCANCODE_D])
-			dir |= RIGHT;
-		entity_move(&player, delta, dir);
+		player_move(&player, delta);
 
 		SDL_SetRenderDrawColor(r, 0, 0, 0, 255);
 		SDL_RenderClear(r);
@@ -141,8 +149,8 @@ int main() {
 				continue;
 
 			SDL_RenderFillRect(r, &walls[i]);
-			if (entity_intersects_rect(&player, &walls[i]))
-				entity_uncollide(&player);
+			if (entity_intersects_rect(player.e, &walls[i]))
+				entity_uncollide(player.e);
 
 			if (show_hitboxes) {
 				SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
@@ -151,12 +159,15 @@ int main() {
 		}
 
 		if (show_hitboxes) {
-			entity_hitbox(&player, &player_hitbox_worldspace);
+			entity_hitbox(player.e, &player_hitbox_worldspace);
 			SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
 			SDL_RenderDrawRect(r, &player_hitbox_worldspace);
 		}
 
-		SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
+		if (player.rolling)
+			SDL_SetTextureColorMod(player_texture, 200, 200, 200);
+		else
+			SDL_SetTextureColorMod(player_texture, 255, 255, 255-50);
 		SDL_RenderCopy(r, player_texture, NULL, &player_pos);
 
 		SDL_RenderPresent(r);
@@ -164,19 +175,19 @@ int main() {
 		/* flip flop rooms */
 		if (player_pos.x < walls[0].x) {
 			room_x -= 1;
-			entity_set_pos(&player, walls[room_width-1].x, player.pos->y);
+			entity_set_pos(player.e, walls[room_width-1].x, player.e->pos->y);
 		}
 		else if (player_pos.x > walls[room_width-1].x) {
 			room_x += 1;
-			entity_set_pos(&player, walls[0].x, player.pos->y);
+			entity_set_pos(player.e, walls[0].x, player.e->pos->y);
 		}
 		else if (player_pos.y < walls[0].y) {
 			room_y -= 1;
-			entity_set_pos(&player, player.pos->x, walls[walls_len-1].y);
+			entity_set_pos(player.e, player.e->pos->x, walls[walls_len-1].y);
 		}
 		else if (player_pos.y > walls[room_width].y) {
 			room_y += 1;
-			entity_set_pos(&player, player.pos->x, walls[offset].y);
+			entity_set_pos(player.e, player.e->pos->x, walls[offset].y);
 		}
 	}
 
