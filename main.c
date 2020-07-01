@@ -42,10 +42,7 @@ int main() {
 	SDL_Rect player_hitbox = { 3, 18, 25, 12 };
 	SDL_Rect player_hitbox_worldspace;
 	entity_t player_e = {0};
-	player_e.pos = &player_pos;
-	player_e.hitbox = &player_hitbox;
-	player_e.move_x = player_e.pos->x;
-	player_e.move_y = player_e.pos->y;
+	entity_init(&player_e, &player_pos, &player_hitbox);
 
 	player_t player = {0};
 	player.e = &player_e;

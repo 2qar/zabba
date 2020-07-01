@@ -18,6 +18,7 @@ typedef struct {
 } entity_t;
 
 
+void entity_init(entity_t *e, SDL_Rect *pos, SDL_Rect *hitbox);
 void entity_move(entity_t *e, Uint32 delta, int dir);
 void entity_set_pos(entity_t *e, int x, int y);
 void entity_hitbox(entity_t *e, SDL_Rect *r);

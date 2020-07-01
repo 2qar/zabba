@@ -1,5 +1,12 @@
 #include "entity.h"
 
+void entity_init(entity_t *e, SDL_Rect *pos, SDL_Rect *hitbox) {
+	e->pos = pos;
+	e->hitbox = hitbox;
+	e->move_x = e->pos->x;
+	e->move_y = e->pos->y;
+}
+
 void move_dir(float move_speed, Uint32 delta, float *step, float *move_axis, int *pos_axis) {
 	*step = move_speed * delta;
 	*move_axis += *step;
