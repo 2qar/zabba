@@ -1,7 +1,7 @@
 #include "player.h"
 
 void player_roll(player_t *p) {
-	if (!p->rolling) {
+	if (!p->rolling && p->move_dir != 0) {
 		p->rolling = 1;
 		p->e->move_speed = p->roll_speed;
 		p->_roll_timeout = SDL_GetTicks() + p->roll_time_ms;
