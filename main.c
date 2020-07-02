@@ -36,11 +36,16 @@ int main() {
 		SDL_Log("error loading texture: %s", SDL_GetError());
 		return 1;
 	}
+	SDL_Texture *enemy_texture = SDL_CreateTextureFromSurface(r, player_surface);
+	if (!enemy_texture) {
+		SDL_Log("error creating enemy texture: %s", SDL_GetError());
+		return 1;
+	}
+	SDL_SetTextureColorMod(enemy_texture, 255, 0, 0);
 
 	/* player junk */
 	SDL_Rect player_pos = { 100, 40, 32, 32 };
 	SDL_Rect player_hitbox = { 3, 18, 25, 12 };
-	SDL_Rect player_hitbox_worldspace;
 	entity_t player_e = {0};
 	entity_init(&player_e, &player_pos, &player_hitbox);
 
@@ -50,6 +55,16 @@ int main() {
 	player.e->move_speed = player.walk_speed;
 	player.roll_speed = 0.4f;
 	player.roll_time_ms = 200;
+
+	/* enemy!!!! */
+	SDL_Rect enemy_pos = { 200, 32, 32, 32 };
+	SDL_Rect enemy_hitbox = { 0, 0, 32, 32 };
+	entity_t enemy = {0};
+	entity_init(&enemy, &enemy_pos, &enemy_hitbox);
+	enemy.type = entity_type_enemy;
+
+	/* debug hitbox info */
+	SDL_Rect hb;
 
 	/* room junk */
 	const int room_width = 15;
@@ -155,10 +170,27 @@ int main() {
 			}
 		}
 
+		if (entity_intersects(player.e, &enemy)) {
+			if (player.rolling) {
+				enemy.hitbox->w = enemy.hitbox->h = 0;
+				enemy.pos->x = enemy.pos->y = -1;
+			} else {
+				player.e->pos->w = player.e->pos->h = 0;
+				entity_set_pos(player.e, walls[0].x + 1, walls[0].y + 1);
+				/* TODO: show some text or maybe a reset prompt */
+				SDL_Log("you died :(");
+			}
+		}
+
+		if (enemy_pos.x > 0)
+			SDL_RenderCopy(r, enemy_texture, NULL, &enemy_pos);
+
 		if (show_hitboxes) {
-			entity_hitbox(player.e, &player_hitbox_worldspace);
 			SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
-			SDL_RenderDrawRect(r, &player_hitbox_worldspace);
+			entity_hitbox(&enemy, &hb);
+			SDL_RenderDrawRect(r, &hb);
+			entity_hitbox(player.e, &hb);
+			SDL_RenderDrawRect(r, &hb);
 		}
 
 		if (player.rolling)

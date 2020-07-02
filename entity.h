@@ -8,7 +8,14 @@
 #define LEFT  4
 #define RIGHT 8
 
+enum entity_type {
+	entity_type_none,
+	entity_type_enemy,
+};
+
 typedef struct {
+	enum entity_type type;
+
 	SDL_Rect *pos;
 	SDL_Rect *hitbox;
 	float move_x, move_y;
