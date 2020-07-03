@@ -5,6 +5,7 @@
 
 #include "entity.h"
 #include "player.h"
+#include "room.h"
 
 int main() {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -102,12 +103,17 @@ int main() {
 	SDL_Rect room_bg = { 0, 0, room_width * wall_size, room_height * wall_size };
 	room_bg.x += wall_size * 2;
 
-	/* pseudo-room junk */
-	int rooms[][3] = {
-		{ RIGHT, LEFT | DOWN , 0    },
-		{ 0    , UP   | DOWN , 0    },
-		{ 0    , UP   | RIGHT, LEFT },
-	};
+	/* TODO: maybe have a file w/ an ascii map and parse it */
+	/* rooms */
+	room_t rooms[3][3];
+	memset(rooms, 0, sizeof(room_t) * 9);
+	rooms[0][0].doors = RIGHT;
+	rooms[0][1].doors = LEFT | DOWN;
+	rooms[1][1].doors = UP | DOWN;
+	rooms[1][1].entities_len = 1;
+	rooms[1][1].entities = &enemy;
+	rooms[2][1].doors = UP | RIGHT;
+	rooms[2][2].doors = LEFT;
 	int room_y = 1;
 	int room_x = 1;
 
@@ -148,16 +154,18 @@ int main() {
 		SDL_SetRenderDrawColor(r, 0, 255, 0, 255);
 		SDL_RenderFillRect(r, &room_bg);
 
+		room_t current_room = rooms[room_y][room_x];
+		int doors = current_room.doors;
 		for (int i = 0; i < walls_len; ++i) {
 			SDL_SetRenderDrawColor(r, 25, 25, 25, 255);
 			/* FIXME: this is fuckin dumb */
-			if ((rooms[room_y][room_x] & UP) && i == room_width / 2)
+			if ((doors & UP) && i == room_width / 2)
 				continue;
-			if ((rooms[room_y][room_x] & DOWN) && i == room_width / 2 + room_width)
+			if ((doors & DOWN) && i == room_width / 2 + room_width)
 				continue;
-			if ((rooms[room_y][room_x] & LEFT) && i == offset + room_height / 2)
+			if ((doors & LEFT) && i == offset + room_height / 2)
 				continue;
-			if ((rooms[room_y][room_x] & RIGHT) && i == offset + room_height + room_height / 2)
+			if ((doors & RIGHT) && i == offset + room_height + room_height / 2)
 				continue;
 
 			SDL_RenderFillRect(r, &walls[i]);
@@ -182,13 +190,21 @@ int main() {
 			}
 		}
 
-		if (enemy_pos.x > 0)
-			SDL_RenderCopy(r, enemy_texture, NULL, &enemy_pos);
+		entity_t ent;
+		for (int i = 0; i < current_room.entities_len; ++i) {
+			ent = current_room.entities[i];
+			if (ent.type == entity_type_enemy && ent.pos->x < 0)
+				continue;
+			SDL_RenderCopy(r, enemy_texture, NULL, ent.pos);
+		}
 
+		/* debug hitboxes */
 		if (show_hitboxes) {
 			SDL_SetRenderDrawColor(r, 255, 0, 0, 255);
-			entity_hitbox(&enemy, &hb);
-			SDL_RenderDrawRect(r, &hb);
+			for (int i = 0; i < current_room.entities_len; ++i) {
+				entity_hitbox(&current_room.entities[i], &hb);
+				SDL_RenderDrawRect(r, &hb);
+			}
 			entity_hitbox(player.e, &hb);
 			SDL_RenderDrawRect(r, &hb);
 		}
@@ -218,6 +234,7 @@ int main() {
 			room_y += 1;
 			entity_set_pos(player.e, player.e->pos->x, walls[offset].y);
 		}
+
 	}
 
 	free(walls);

@@ -11,6 +11,7 @@
 enum entity_type {
 	entity_type_none,
 	entity_type_enemy,
+	entity_type_item, // TODO: make items drop in a random dir + have speed falloff (move_speed /= 1.0002f or smth)
 };
 
 typedef struct {
