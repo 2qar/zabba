@@ -192,11 +192,9 @@ int main() {
 			if (entity_intersects(player.e, ent)) {
 				if (ent->type == entity_type_enemy) {
 					if (player.rolling) {
-						ent->hitbox.w = ent->hitbox.h = 0;
-						ent->pos.x = ent->pos.y = -1;
+						entity_disable(ent);
 					} else {
-						player.e->pos.w = player.e->pos.h = 0;
-						entity_set_pos(player.e, walls[0].x + 1, walls[0].y + 1);
+						entity_disable(player.e);
 						/* TODO: show some text or maybe a reset prompt */
 						SDL_Log("you died :(");
 					}
@@ -206,7 +204,7 @@ int main() {
 
 		for (int i = 0; i < current_room.entities_len; ++i) {
 			ent = &current_room.entities[i];
-			if (ent->type == entity_type_enemy && ent->pos.x < 0)
+			if (ent->type == entity_type_enemy && entity_disabled(ent))
 				continue;
 			SDL_RenderCopy(r, enemy_texture, NULL, &ent->pos);
 		}
@@ -229,6 +227,9 @@ int main() {
 		SDL_RenderCopy(r, player_texture, NULL, &player_e.pos);
 
 		SDL_RenderPresent(r);
+
+		if (entity_disabled(&player_e))
+			continue;
 
 		/* flip flop rooms */
 		if (player_e.pos.x < walls[0].x) {

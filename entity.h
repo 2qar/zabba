@@ -33,5 +33,7 @@ void entity_hitbox(entity_t *e, SDL_Rect *r);
 SDL_bool entity_intersects(entity_t *e, entity_t *other);
 SDL_bool entity_intersects_rect(entity_t *e, SDL_Rect *r);
 void entity_uncollide(entity_t *e);
+void entity_disable(entity_t *e);
+int entity_disabled(entity_t *e);
 
 #endif

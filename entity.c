@@ -64,3 +64,14 @@ void entity_uncollide(entity_t *e) {
 	e->move_y += e->_y_step * -1;
 	e->pos.y = (int) e->move_y;
 }
+
+void entity_disable(entity_t *e) {
+	e->pos.w = e->pos.h = -1;
+	e->hitbox.w = e->hitbox.h = -1;
+	e->move_speed = 0.0f;
+	entity_set_pos(e, -1, -1);
+}
+
+int entity_disabled(entity_t *e) {
+	return e->pos.w == -1;
+}
