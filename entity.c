@@ -1,10 +1,10 @@
 #include "entity.h"
 
-void entity_init(entity_t *e, SDL_Rect *pos, SDL_Rect *hitbox) {
-	e->pos = pos;
-	e->hitbox = hitbox;
-	e->move_x = e->pos->x;
-	e->move_y = e->pos->y;
+void entity_init(entity_t *e, const SDL_Rect *pos, const SDL_Rect *hitbox) {
+	e->pos = *pos;
+	e->hitbox = *hitbox;
+	e->move_x = e->pos.x;
+	e->move_y = e->pos.y;
 }
 
 void move_dir(float move_speed, Uint32 delta, float *step, float *move_axis, int *pos_axis) {
@@ -14,11 +14,11 @@ void move_dir(float move_speed, Uint32 delta, float *step, float *move_axis, int
 }
 
 void move_x(entity_t *e, float move_speed, Uint32 delta) {
-	move_dir(move_speed, delta, &(e->_x_step), &(e->move_x), &(e->pos->x));
+	move_dir(move_speed, delta, &(e->_x_step), &(e->move_x), &(e->pos.x));
 }
 
 void move_y(entity_t *e, float move_speed, Uint32 delta) {
-	move_dir(move_speed, delta, &(e->_y_step), &(e->move_y), &(e->pos->y));
+	move_dir(move_speed, delta, &(e->_y_step), &(e->move_y), &(e->pos.y));
 }
 
 void entity_move(entity_t *e, Uint32 delta, int dir) {
@@ -34,16 +34,16 @@ void entity_move(entity_t *e, Uint32 delta, int dir) {
 }
 
 void entity_set_pos(entity_t *e, int x, int y) {
-	e->pos->x = x;
-	e->pos->y = y;
+	e->pos.x = x;
+	e->pos.y = y;
 	e->move_x = x;
 	e->move_y = y;
 }
 
 void entity_hitbox(entity_t *e, SDL_Rect *r) {
-	*r = *e->hitbox;
-	r->x += e->pos->x;
-	r->y += e->pos->y;
+	*r = e->hitbox;
+	r->x += e->pos.x;
+	r->y += e->pos.y;
 }
 
 SDL_bool entity_intersects(entity_t *e, entity_t *other) {
@@ -60,7 +60,7 @@ SDL_bool entity_intersects_rect(entity_t *e, SDL_Rect *r) {
 
 void entity_uncollide(entity_t *e) {
 	e->move_x += e->_x_step * -1;
-	e->pos->x = (int) e->move_x;
+	e->pos.x = (int) e->move_x;
 	e->move_y += e->_y_step * -1;
-	e->pos->y = (int) e->move_y;
+	e->pos.y = (int) e->move_y;
 }

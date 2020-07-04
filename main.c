@@ -180,10 +180,10 @@ int main() {
 
 		if (entity_intersects(player.e, &enemy)) {
 			if (player.rolling) {
-				enemy.hitbox->w = enemy.hitbox->h = 0;
-				enemy.pos->x = enemy.pos->y = -1;
+				enemy.hitbox.w = enemy.hitbox.h = 0;
+				enemy.pos.x = enemy.pos.y = -1;
 			} else {
-				player.e->pos->w = player.e->pos->h = 0;
+				player.e->pos.w = player.e->pos.h = 0;
 				entity_set_pos(player.e, walls[0].x + 1, walls[0].y + 1);
 				/* TODO: show some text or maybe a reset prompt */
 				SDL_Log("you died :(");
@@ -193,9 +193,9 @@ int main() {
 		entity_t ent;
 		for (int i = 0; i < current_room.entities_len; ++i) {
 			ent = current_room.entities[i];
-			if (ent.type == entity_type_enemy && ent.pos->x < 0)
+			if (ent.type == entity_type_enemy && ent.pos.x < 0)
 				continue;
-			SDL_RenderCopy(r, enemy_texture, NULL, ent.pos);
+			SDL_RenderCopy(r, enemy_texture, NULL, &ent.pos);
 		}
 
 		/* debug hitboxes */
@@ -213,26 +213,26 @@ int main() {
 			SDL_SetTextureColorMod(player_texture, 200, 200, 200);
 		else
 			SDL_SetTextureColorMod(player_texture, 255, 255, 255-50);
-		SDL_RenderCopy(r, player_texture, NULL, &player_pos);
+		SDL_RenderCopy(r, player_texture, NULL, &player_e.pos);
 
 		SDL_RenderPresent(r);
 
 		/* flip flop rooms */
-		if (player_pos.x < walls[0].x) {
+		if (player_e.pos.x < walls[0].x) {
 			room_x -= 1;
-			entity_set_pos(player.e, walls[room_width-1].x, player.e->pos->y);
+			entity_set_pos(player.e, walls[room_width-1].x, player.e->pos.y);
 		}
-		else if (player_pos.x > walls[room_width-1].x) {
+		else if (player_e.pos.x > walls[room_width-1].x) {
 			room_x += 1;
-			entity_set_pos(player.e, walls[0].x, player.e->pos->y);
+			entity_set_pos(player.e, walls[0].x, player.e->pos.y);
 		}
-		else if (player_pos.y < walls[0].y) {
+		else if (player_e.pos.y < walls[0].y) {
 			room_y -= 1;
-			entity_set_pos(player.e, player.e->pos->x, walls[walls_len-1].y);
+			entity_set_pos(player.e, player.e->pos.x, walls[walls_len-1].y);
 		}
-		else if (player_pos.y > walls[room_width].y) {
+		else if (player_e.pos.y > walls[room_width].y) {
 			room_y += 1;
-			entity_set_pos(player.e, player.e->pos->x, walls[offset].y);
+			entity_set_pos(player.e, player.e->pos.x, walls[offset].y);
 		}
 
 	}
