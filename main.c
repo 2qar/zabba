@@ -64,6 +64,12 @@ int main() {
 	entity_init(&enemy, &enemy_pos, &enemy_hitbox);
 	enemy.type = entity_type_enemy;
 
+	entity_t another_enemy = {0};
+	enemy_pos.x = 400;
+	enemy_pos.y = 200;
+	entity_init(&another_enemy, &enemy_pos, &enemy_hitbox);
+	another_enemy.type = entity_type_enemy;
+
 	/* debug hitbox info */
 	SDL_Rect hb;
 
@@ -114,6 +120,8 @@ int main() {
 	rooms[1][1].entities = &enemy;
 	rooms[2][1].doors = UP | RIGHT;
 	rooms[2][2].doors = LEFT;
+	rooms[2][2].entities_len = 1;
+	rooms[2][2].entities = &another_enemy;
 	int room_y = 1;
 	int room_x = 1;
 
@@ -178,24 +186,29 @@ int main() {
 			}
 		}
 
-		if (entity_intersects(player.e, &enemy)) {
-			if (player.rolling) {
-				enemy.hitbox.w = enemy.hitbox.h = 0;
-				enemy.pos.x = enemy.pos.y = -1;
-			} else {
-				player.e->pos.w = player.e->pos.h = 0;
-				entity_set_pos(player.e, walls[0].x + 1, walls[0].y + 1);
-				/* TODO: show some text or maybe a reset prompt */
-				SDL_Log("you died :(");
+		entity_t *ent;
+		for (int i = 0; i < current_room.entities_len; ++i) {
+			ent = &(current_room.entities[i]);
+			if (entity_intersects(player.e, ent)) {
+				if (ent->type == entity_type_enemy) {
+					if (player.rolling) {
+						ent->hitbox.w = ent->hitbox.h = 0;
+						ent->pos.x = ent->pos.y = -1;
+					} else {
+						player.e->pos.w = player.e->pos.h = 0;
+						entity_set_pos(player.e, walls[0].x + 1, walls[0].y + 1);
+						/* TODO: show some text or maybe a reset prompt */
+						SDL_Log("you died :(");
+					}
+				}
 			}
 		}
 
-		entity_t ent;
 		for (int i = 0; i < current_room.entities_len; ++i) {
-			ent = current_room.entities[i];
-			if (ent.type == entity_type_enemy && ent.pos.x < 0)
+			ent = &current_room.entities[i];
+			if (ent->type == entity_type_enemy && ent->pos.x < 0)
 				continue;
-			SDL_RenderCopy(r, enemy_texture, NULL, &ent.pos);
+			SDL_RenderCopy(r, enemy_texture, NULL, &ent->pos);
 		}
 
 		/* debug hitboxes */
