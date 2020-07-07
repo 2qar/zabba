@@ -7,8 +7,13 @@
 #include "player.h"
 #include "room.h"
 
+Uint32 entity_disable_callback(Uint32 interval, void *param) {
+	entity_disable((entity_t *) param);
+	return 0;
+}
+
 int main() {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0) {
 		SDL_Log("unable to initialize SDL: %s", SDL_GetError());
 		return 1;
 	}
@@ -187,12 +192,16 @@ int main() {
 		}
 
 		entity_t *ent;
+		int hit_enemy = 0;
 		for (int i = 0; i < current_room.entities_len; ++i) {
 			ent = &(current_room.entities[i]);
 			if (entity_intersects(player.e, ent)) {
 				if (ent->type == entity_type_enemy) {
 					if (player.rolling) {
-						entity_disable(ent);
+						/* TODO: make this per-enemy */
+						SDL_SetTextureColorMod(enemy_texture, 0, 0, 0);
+						SDL_AddTimer(100, entity_disable_callback, (void *) ent);
+						hit_enemy = 1;
 					} else {
 						entity_disable(player.e);
 						/* TODO: show some text or maybe a reset prompt */
@@ -228,6 +237,9 @@ int main() {
 
 		SDL_RenderPresent(r);
 
+		if (hit_enemy)
+			SDL_Delay(50);
+
 		if (entity_disabled(&player_e))
 			continue;
 
@@ -248,7 +260,6 @@ int main() {
 			room_y += 1;
 			entity_set_pos(player.e, player.e->pos.x, walls[offset].y);
 		}
-
 	}
 
 	free(walls);
