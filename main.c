@@ -35,6 +35,11 @@ int main() {
 		SDL_Log("error loading player image: %s", IMG_GetError());
 		return 1;
 	}
+	SDL_Surface *key_surface = IMG_Load("key.png");
+	if (!key_surface) {
+		SDL_Log("error loading key: %s", IMG_GetError());
+		return 1;
+	}
 	IMG_Quit();
 
 	SDL_Texture *player_texture = SDL_CreateTextureFromSurface(r, player_surface);
@@ -45,6 +50,11 @@ int main() {
 	SDL_Texture *enemy_texture = SDL_CreateTextureFromSurface(r, player_surface);
 	if (!enemy_texture) {
 		SDL_Log("error creating enemy texture: %s", SDL_GetError());
+		return 1;
+	}
+	SDL_Texture *key_texture = SDL_CreateTextureFromSurface(r, key_surface);
+	if (!key_texture) {
+		SDL_Log("error creating key texture: %s", SDL_GetError());
 		return 1;
 	}
 
@@ -84,10 +94,12 @@ int main() {
 	entity_init(&key, &key_pos, &key_hitbox);
 	key.type = entity_type_key;
 	key.color.b = 255;
+	key.texture = key_texture;
 
 	entity_t door;
 	memcpy(&door, &key, sizeof(entity_t));
 	door.type = entity_type_door;
+	door.texture = NULL;
 
 	/* debug hitbox info */
 	SDL_Rect hb;
@@ -301,6 +313,7 @@ int main() {
 	free(walls);
 
 	SDL_FreeSurface(player_surface);
+	SDL_FreeSurface(key_surface);
 	SDL_DestroyRenderer(r);
 	SDL_DestroyWindow(w);
 
