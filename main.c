@@ -120,7 +120,6 @@ int main() {
 		walls[i + room_width].x = i * wall_size;
 		walls[i + room_width].y = (room_height * wall_size) - wall_size;
 	}
-
 	/* side walls */
 	int offset = room_width * 2;
 	for (int i = offset; i < offset + room_height; ++i) {
@@ -130,12 +129,14 @@ int main() {
 		walls[i + room_height].x = (room_width * wall_size) - wall_size;
 		walls[i + room_height].y = (i - offset) * wall_size;
 	}
-
 	/* give each wall its size */
 	for (int i = 0; i < walls_len; ++i) {
 		walls[i].w = walls[i].h = wall_size;
 		walls[i].x += wall_size * 2;
 	}
+
+	door.pos.x = walls[offset + room_height].x;
+	door.pos.y = walls[offset + room_height / 2].y;
 
 	SDL_Rect room_bg = { 0, 0, room_width * wall_size, room_height * wall_size };
 	room_bg.x += wall_size * 2;
