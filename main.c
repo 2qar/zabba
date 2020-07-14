@@ -47,7 +47,6 @@ int main() {
 		SDL_Log("error creating enemy texture: %s", SDL_GetError());
 		return 1;
 	}
-	SDL_SetTextureColorMod(enemy_texture, 255, 0, 0);
 
 	/* player junk */
 	SDL_Rect player_pos = { 100, 40, 32, 32 };
@@ -68,12 +67,16 @@ int main() {
 	entity_t enemy = {0};
 	entity_init(&enemy, &enemy_pos, &enemy_hitbox);
 	enemy.type = entity_type_enemy;
+	enemy.color.r = 255;
+	enemy.texture = enemy_texture;
 
 	entity_t another_enemy = {0};
 	enemy_pos.x = 400;
 	enemy_pos.y = 200;
 	entity_init(&another_enemy, &enemy_pos, &enemy_hitbox);
 	another_enemy.type = entity_type_enemy;
+	another_enemy.color.r = 255;
+	another_enemy.texture = enemy_texture;
 
 	/* debug hitbox info */
 	SDL_Rect hb;
@@ -198,8 +201,7 @@ int main() {
 			if (entity_intersects(player.e, ent)) {
 				if (ent->type == entity_type_enemy) {
 					if (player.rolling) {
-						/* TODO: make this per-enemy */
-						SDL_SetTextureColorMod(enemy_texture, 0, 0, 0);
+						ent->color.r = ent->color.g = ent->color.b = 0;
 						SDL_AddTimer(100, entity_disable_callback, (void *) ent);
 						hit_enemy = 1;
 					} else {
@@ -215,7 +217,8 @@ int main() {
 			ent = &current_room.entities[i];
 			if (ent->type == entity_type_enemy && entity_disabled(ent))
 				continue;
-			SDL_RenderCopy(r, enemy_texture, NULL, &ent->pos);
+			SDL_SetTextureColorMod(ent->texture, ent->color.r, ent->color.g, ent->color.b);
+			SDL_RenderCopy(r, ent->texture, NULL, &(ent->pos));
 		}
 
 		/* debug hitboxes */
