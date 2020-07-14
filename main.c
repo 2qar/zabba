@@ -78,6 +78,17 @@ int main() {
 	another_enemy.color.r = 255;
 	another_enemy.texture = enemy_texture;
 
+	SDL_Rect key_pos = { 200, 200, 32, 32 };
+	SDL_Rect key_hitbox = { 0, 0, 32, 32 };
+	entity_t key = {0};
+	entity_init(&key, &key_pos, &key_hitbox);
+	key.type = entity_type_key;
+	key.color.b = 255;
+
+	entity_t door;
+	memcpy(&door, &key, sizeof(entity_t));
+	door.type = entity_type_door;
+
 	/* debug hitbox info */
 	SDL_Rect hb;
 
@@ -118,15 +129,20 @@ int main() {
 	room_bg.x += wall_size * 2;
 
 	/* TODO: maybe have a file w/ an ascii map and parse it */
+	/* TODO: also have a function for adding entities to a room because it's ass right now */
 	/* rooms */
 	room_t rooms[3][3];
 	memset(rooms, 0, sizeof(room_t) * 9);
 	rooms[0][0].doors = RIGHT;
+	rooms[0][0].entities_len = 1;
+	rooms[0][0].entities = &key;
 	rooms[0][1].doors = LEFT | DOWN;
 	rooms[1][1].doors = UP | DOWN;
 	rooms[1][1].entities_len = 1;
 	rooms[1][1].entities = &enemy;
 	rooms[2][1].doors = UP | RIGHT;
+	rooms[2][1].entities_len = 1;
+	rooms[2][1].entities = &door;
 	rooms[2][2].doors = LEFT;
 	rooms[2][2].entities_len = 1;
 	rooms[2][2].entities = &another_enemy;
@@ -209,6 +225,16 @@ int main() {
 						/* TODO: show some text or maybe a reset prompt */
 						SDL_Log("you died :(");
 					}
+				} else if (ent->type == entity_type_key) {
+					entity_disable(ent);
+					// TODO: don't hardcode map size, idiot
+					for (int i = 0; i < 3; ++i)
+						for (int j = 0; j < 3; ++j)
+							room_open_doors(&rooms[i][j], ent->color);
+				} else if (ent->type == entity_type_door_opened) {
+					entity_disable(ent);
+				} else {
+					entity_uncollide(player.e);
 				}
 			}
 		}
@@ -217,8 +243,15 @@ int main() {
 			ent = &current_room.entities[i];
 			if (ent->type == entity_type_enemy && entity_disabled(ent))
 				continue;
-			SDL_SetTextureColorMod(ent->texture, ent->color.r, ent->color.g, ent->color.b);
-			SDL_RenderCopy(r, ent->texture, NULL, &(ent->pos));
+			if (ent->texture != NULL) {
+				SDL_SetTextureColorMod(ent->texture, ent->color.r, ent->color.g, ent->color.b);
+				SDL_RenderCopy(r, ent->texture, NULL, &(ent->pos));
+			} else {
+				SDL_Rect rect;
+				entity_hitbox(ent, &rect);
+				SDL_SetRenderDrawColor(r, ent->color.r, ent->color.g, ent->color.b, 255);
+				SDL_RenderFillRect(r, &rect);
+			}
 		}
 
 		/* debug hitboxes */

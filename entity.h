@@ -12,13 +12,16 @@ enum entity_type {
 	entity_type_none,
 	entity_type_enemy,
 	entity_type_item, // TODO: make items drop in a random dir + have speed falloff (move_speed /= 1.0002f or smth)
+	entity_type_key,
+	entity_type_door,
+	entity_type_door_opened,
 };
 
 typedef struct {
 	enum entity_type type;
 
 	SDL_Texture *texture;
-	SDL_Color color; // probably just a placeholder
+	SDL_Color color;
 	SDL_Rect pos;
 	SDL_Rect hitbox;
 	float move_x, move_y;
