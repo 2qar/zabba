@@ -1,11 +1,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdlib.h>
 
 #include "entity.h"
 #include "player.h"
 #include "room.h"
+
+#define FONT_PATH "fonts/PressStart2P.ttf"
 
 Uint32 entity_disable_callback(Uint32 interval, void *param) {
 	entity_disable((entity_t *) param);
@@ -55,6 +58,16 @@ int main() {
 	SDL_Texture *key_texture = SDL_CreateTextureFromSurface(r, key_surface);
 	if (!key_texture) {
 		SDL_Log("error creating key texture: %s", SDL_GetError());
+		return 1;
+	}
+
+	if (TTF_Init() < 0) {
+		SDL_Log("SDL_ttf init error: %s", TTF_GetError());
+		return 1;
+	}
+	TTF_Font *font = TTF_OpenFont(FONT_PATH, 16);
+	if (!font) {
+		SDL_Log("error opening font: %s", TTF_GetError());
 		return 1;
 	}
 
@@ -164,6 +177,7 @@ int main() {
 
 	SDL_Event e;
 	int playing = 1;
+	int dead = 0;
 	int show_hitboxes = 0;
 	Uint32 old_time = SDL_GetTicks();
 	while (playing) {
@@ -235,8 +249,7 @@ int main() {
 						hit_enemy = 1;
 					} else {
 						entity_disable(player.e);
-						/* TODO: show some text or maybe a reset prompt */
-						SDL_Log("you died :(");
+						dead = 1;
 					}
 				} else if (ent->type == entity_type_key) {
 					entity_disable(ent);
@@ -284,6 +297,21 @@ int main() {
 			SDL_SetTextureColorMod(player_texture, 255, 255, 255-50);
 		SDL_RenderCopy(r, player_texture, NULL, &player_e.pos);
 
+		if (dead) {
+			SDL_Color text_color = {255, 255, 255, 255};
+			SDL_Surface *text = TTF_RenderText_Solid(font, "you died :(", text_color);
+			SDL_BlitSurface(text, NULL, SDL_GetWindowSurface(w), NULL);
+			/* maybe not the best way to do it, but it works :)))) */
+			SDL_Texture *text_texture = SDL_CreateTextureFromSurface(r, text);
+			int w_width, w_height;
+			SDL_GetWindowSize(w, &w_width, &w_height);
+			SDL_Rect text_pos = { w_width/2, w_height/2, text->clip_rect.w, text->clip_rect.h };
+			text_pos.x -= text->clip_rect.w / 2;
+			text_pos.y -= text->clip_rect.h / 2;
+			SDL_RenderCopy(r, text_texture, NULL, &text_pos);
+			SDL_FreeSurface(text);
+		}
+
 		SDL_RenderPresent(r);
 
 		if (hit_enemy)
@@ -319,5 +347,6 @@ int main() {
 	SDL_DestroyWindow(w);
 
 	SDL_Quit();
+	TTF_Quit();
 	return 0;
 }
